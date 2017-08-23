@@ -35,7 +35,7 @@ class SparkHttpStreamTest {
 
 	@Test
 	def testHttpStreamSink() {
-		val spark = SparkSession.builder.appName("testHttpTextSink").master("local[4]")
+		val spark = SparkSession.builder.master("local[4]")
 			.getOrCreate();
 		spark.conf.set("spark.sql.streaming.checkpointLocation", "/tmp/");
 
@@ -68,7 +68,7 @@ class SparkHttpStreamTest {
 				row(3).asInstanceOf[Float], row(4).asInstanceOf[Double], row(5).asInstanceOf[Long], row(6).asInstanceOf[Date])
 		});
 
-		query.awaitTermination(500000);
+		query.awaitTermination(5000);
 		receiver.stop();
 
 		//the listener got data in the sink
@@ -84,7 +84,7 @@ class SparkHttpStreamTest {
 	var i = 100;
 
 	def queryStream(includesTimestamp: Boolean) = {
-		val spark = SparkSession.builder.appName("testHttpTextSink").master("local[4]")
+		val spark = SparkSession.builder.master("local[4]")
 			.getOrCreate();
 		spark.conf.set("spark.sql.streaming.checkpointLocation", "/tmp/");
 
@@ -143,7 +143,58 @@ class SparkHttpStreamTest {
 		Assert.assertArrayEquals(ROWS1.map(_.toSeq.dropRight(1).toArray).toArray.asInstanceOf[Array[Object]], ds.map(_.toSeq.dropRight(2).toArray).toArray.asInstanceOf[Array[Object]]);
 	}
 
+	@Test
 	def testSinkAndSource() {
+		val spark = SparkSession.builder.master("local[4]")
+			.getOrCreate();
+		spark.conf.set("spark.sql.streaming.checkpointLocation", "/tmp/");
 
+		val sqlContext = spark.sqlContext;
+		//we read data from memory
+		import spark.implicits._
+		val memoryStream = new MemoryStream[(String, Int, Boolean, Float, Double, Long, Date)](1, sqlContext);
+		val schema = memoryStream.schema;
+
+		val kryoSerializer = new KryoSerializer(new SparkConf());
+		//starts a http server with a receiver servlet
+		val receiver = HttpStreamServer.start(kryoSerializer, "/xxxx", 8080);
+		//add a listener by which we can test if the sink works well
+		receiver.withBuffer()
+			.addListener(new ObjectArrayPrinter())
+			.createTopic[(String, Int, Boolean, Float, Double, Long, Date)]("topic-1");
+
+		//memory->map->HttpTextSink
+		val query1 = memoryStream.toDF().writeStream
+			.format(classOf[HttpStreamSinkProvider].getName)
+			.option("httpServletUrl", "http://localhost:8080/xxxx")
+			.option("topic", "topic-1")
+			.start();
+
+		//HttpTextStream->map->memory
+		FileUtils.deleteDirectory(new File(s"/tmp/query2"));
+		val query2 = spark.readStream.format(classOf[HttpStreamSourceProvider].getName)
+			.option("httpServletUrl", "http://localhost:8080/xxxx")
+			.option("topic", "topic-1")
+			.load()
+			.writeStream
+			.option("queryName", "query2")
+			.format("memory")
+			.start();
+
+		//produces data now
+		memoryStream.addData(ROWS1.map { row ⇒
+			(row(0).asInstanceOf[String], row(1).asInstanceOf[Int], row(2).asInstanceOf[Boolean],
+				row(3).asInstanceOf[Float], row(4).asInstanceOf[Double], row(5).asInstanceOf[Long], row(6).asInstanceOf[Date])
+		});
+
+		query1.awaitTermination(5000);
+		query2.awaitTermination(5000);
+		receiver.stop();
+
+		//tests if memorySink get data
+		val memorySink = query2.asInstanceOf[StreamExecution].sink.asInstanceOf[MemorySink];
+		val ds = memorySink.allData;
+
+		Assert.assertArrayEquals(ROWS1.map(_.toSeq.dropRight(1).toArray).toArray.asInstanceOf[Array[Object]], ds.map(_.toSeq.dropRight(1).toArray).toArray.asInstanceOf[Array[Object]]);
 	}
 }
