@@ -19,14 +19,26 @@ class UtilsTest {
 	}
 
 	@Test
-	def test2() {
+	def testEncoderSchema() {
 		val spark = SparkSession.builder.master("local[4]")
 			.getOrCreate();
+		val sqlContext = spark.sqlContext;
+		import sqlContext.implicits._
+		import org.apache.spark.sql.catalyst.encoders.encoderFor
+		val schema1 = encoderFor[String].schema;
+		val schema2 = encoderFor[(String)].schema;
 
-		val d1 = new Date(30000);
+		Assert.assertEquals(schema1, schema2);
+	}
+
+	@Test
+	def test3() {
+		val spark = SparkSession.builder.master("local[4]")
+			.getOrCreate();
 		val sqlContext = spark.sqlContext;
 		import sqlContext.implicits._
 
+		val d1 = new Date(30000);
 		val ds = sqlContext.createDataset(Seq[(Int, Date)]((1, d1)));
 		val d2 = ds.collect()(0)._2;
 

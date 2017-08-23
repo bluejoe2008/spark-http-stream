@@ -57,7 +57,7 @@ trait SendStreamActionHandler {
 	def handleSendStream(requestBody: Map[String, Any]): Map[String, Any] = {
 		val topic = getRequiredParam(requestBody, "topic").asInstanceOf[String];
 		val batchId = getRequiredParam(requestBody, "batchId").asInstanceOf[Long];
-		val rows = getRequiredParam(requestBody, "rows").asInstanceOf[Array[Row]];
+		val rows = getRequiredParam(requestBody, "rows").asInstanceOf[Array[Row]].map(row ⇒ Row.fromSeq(row.toSeq));
 
 		onReceiveStream(topic, batchId, rows);
 		notifyListeners(topic, batchId, rows);

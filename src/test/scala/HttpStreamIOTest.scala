@@ -1,5 +1,3 @@
-import java.sql.Date
-
 import org.apache.spark.SparkConf
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.sql.Row
@@ -12,7 +10,6 @@ import org.junit.Test
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.types.IntegerType
 import org.apache.spark.sql.types.DoubleType
-import org.apache.spark.sql.types.DateType
 import org.apache.spark.sql.types.BooleanType
 import org.apache.spark.sql.types.FloatType
 import org.apache.spark.sql.types.StringType
@@ -23,9 +20,9 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types.ByteType
 
 class HttpStreamIOTest {
-	val ROWS1 = Array(Row("hello1", 1, true, 0.1f, 0.1d, 1L, new Date(10000)),
-		Row("hello2", 2, false, 0.2f, 0.2d, 2L, new Date(20000)),
-		Row("hello3", 3, true, 0.3f, 0.3d, 3L, new Date(30000)));
+	val ROWS1 = Array(Row("hello1", 1, true, 0.1f, 0.1d, 1L, '1'.toByte),
+		Row("hello2", 2, false, 0.2f, 0.2d, 2L, '2'.toByte),
+		Row("hello3", 3, true, 0.3f, 0.3d, 3L, '3'.toByte));
 
 	val ROWS2 = Array(Row("hello"),
 		Row("world"),
@@ -45,12 +42,12 @@ class HttpStreamIOTest {
 		import spark.implicits._
 		receiver.withBuffer()
 			.addListener(new ObjectArrayPrinter())
-			.createTopic[(String, Int, Boolean, Float, Double, Long, Date)]("topic-1")
+			.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1")
 			.createTopic[String]("topic-2");
 
 		val client = HttpStreamClient.connect("http://localhost:8080/xxxx", kryoSerializer);
 		val schema1 = client.fetchSchema("topic-1");
-		Assert.assertArrayEquals(Array[Object](StringType, IntegerType, BooleanType, FloatType, DoubleType, LongType, DateType),
+		Assert.assertArrayEquals(Array[Object](StringType, IntegerType, BooleanType, FloatType, DoubleType, LongType, ByteType),
 			schema1.fields.map(_.dataType).asInstanceOf[Array[Object]]);
 		val schema2 = client.fetchSchema("topic-2");
 		Assert.assertArrayEquals(Array[Object](StringType),

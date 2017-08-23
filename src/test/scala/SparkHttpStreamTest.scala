@@ -1,5 +1,3 @@
-import java.sql.Date
-
 import org.apache.spark.SparkConf
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.sql.Row
@@ -28,10 +26,9 @@ import org.apache.commons.io.FileUtils
 import java.io.File
 
 class SparkHttpStreamTest {
-	val ROWS1: Array[Row] = Array(Row("hello1", 1, true, 0.1f, 0.1d, 1L, new Date(10000)),
-		Row("hello2", 2, false, 0.2f, 0.2d, 2L, new Date(20000)), Row("hello3", 3, true, 0.3f, 0.3d, 3L, new Date(30000)));
-
-	val ROWS2: Array[Row] = Array(Row("HELLO1", 2, false), Row("HELLO2", 3, true), Row("HELLO3", 4, false));
+	val ROWS1: Array[Row] = Array(Row("hello1", 1, true, 0.1f, 0.1d, 1L, '1'.toByte),
+		Row("hello2", 2, false, 0.2f, 0.2d, 2L, '2'.toByte),
+		Row("hello3", 3, true, 0.3f, 0.3d, 3L, '3'.toByte));
 
 	@Test
 	def testHttpStreamSink() {
@@ -42,7 +39,7 @@ class SparkHttpStreamTest {
 		val sqlContext = spark.sqlContext;
 		//we read data from memory
 		import spark.implicits._
-		val memoryStream = new MemoryStream[(String, Int, Boolean, Float, Double, Long, Date)](1, sqlContext);
+		val memoryStream = new MemoryStream[(String, Int, Boolean, Float, Double, Long, Byte)](1, sqlContext);
 		val schema = memoryStream.schema;
 		//val memoryStream = new MemoryStream[String](1, sqlContext);
 		val kryoSerializer = new KryoSerializer(new SparkConf());
@@ -53,7 +50,7 @@ class SparkHttpStreamTest {
 		receiver.withBuffer()
 			.addListener(collector)
 			.addListener(new ObjectArrayPrinter())
-			.createTopic[(String, Int, Boolean, Float, Double, Long, Date)]("topic-1");
+			.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1");
 
 		//memory->map->HttpTextSink
 		val query = memoryStream.toDF().writeStream
@@ -65,7 +62,7 @@ class SparkHttpStreamTest {
 		//produces data now
 		memoryStream.addData(ROWS1.map { row ⇒
 			(row(0).asInstanceOf[String], row(1).asInstanceOf[Int], row(2).asInstanceOf[Boolean],
-				row(3).asInstanceOf[Float], row(4).asInstanceOf[Double], row(5).asInstanceOf[Long], row(6).asInstanceOf[Date])
+				row(3).asInstanceOf[Float], row(4).asInstanceOf[Double], row(5).asInstanceOf[Long], row(6).asInstanceOf[Byte])
 		});
 
 		query.awaitTermination(5000);
@@ -73,11 +70,6 @@ class SparkHttpStreamTest {
 
 		//the listener got data in the sink
 		val data = collector.get;
-		Assert.assertArrayEquals(Array[Object](StringType, IntegerType, BooleanType, FloatType, DoubleType, LongType, DateType), data(0).schema.fields.map(_.dataType).asInstanceOf[Array[Object]]);
-		//Date.equals() returns false
-		val d1 = ROWS1(0)(6);
-		val d2 = data(0)(6);
-
 		Assert.assertArrayEquals(ROWS1.map(_.toSeq.dropRight(1).toArray).toArray.asInstanceOf[Array[Object]], data.map(_.toSeq.dropRight(1).toArray).toArray.asInstanceOf[Array[Object]]);
 	}
 
@@ -95,7 +87,7 @@ class SparkHttpStreamTest {
 		//starts a http server with a receiver servlet
 		val receiver = HttpStreamServer.start(kryoSerializer, "/xxxx", 8080);
 		receiver.withBuffer()
-			.createTopic[(String, Int, Boolean, Float, Double, Long, Date)]("topic-1");
+			.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1");
 
 		//HttpTextStream as a source stream
 		val reader = spark.readStream.format(classOf[HttpStreamSourceProvider].getName)
@@ -152,7 +144,7 @@ class SparkHttpStreamTest {
 		val sqlContext = spark.sqlContext;
 		//we read data from memory
 		import spark.implicits._
-		val memoryStream = new MemoryStream[(String, Int, Boolean, Float, Double, Long, Date)](1, sqlContext);
+		val memoryStream = new MemoryStream[(String, Int, Boolean, Float, Double, Long, Byte)](1, sqlContext);
 		val schema = memoryStream.schema;
 
 		val kryoSerializer = new KryoSerializer(new SparkConf());
@@ -161,7 +153,7 @@ class SparkHttpStreamTest {
 		//add a listener by which we can test if the sink works well
 		receiver.withBuffer()
 			.addListener(new ObjectArrayPrinter())
-			.createTopic[(String, Int, Boolean, Float, Double, Long, Date)]("topic-1");
+			.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1");
 
 		//memory->map->HttpTextSink
 		val query1 = memoryStream.toDF().writeStream
@@ -184,7 +176,7 @@ class SparkHttpStreamTest {
 		//produces data now
 		memoryStream.addData(ROWS1.map { row ⇒
 			(row(0).asInstanceOf[String], row(1).asInstanceOf[Int], row(2).asInstanceOf[Boolean],
-				row(3).asInstanceOf[Float], row(4).asInstanceOf[Double], row(5).asInstanceOf[Long], row(6).asInstanceOf[Date])
+				row(3).asInstanceOf[Float], row(4).asInstanceOf[Double], row(5).asInstanceOf[Long], row(6).asInstanceOf[Byte])
 		});
 
 		query1.awaitTermination(5000);
