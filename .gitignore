@@ -1,0 +1,7 @@
+*.class
+*.log
+/target/
+/.settings/
+/.cache-main
+/.cache-tests
+.DS_Store
