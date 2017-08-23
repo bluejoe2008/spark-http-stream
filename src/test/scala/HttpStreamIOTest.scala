@@ -77,7 +77,7 @@ class HttpStreamIOTest {
 			Assert.assertTrue(false);
 		}
 		catch {
-			case e ⇒
+			case e: Throwable ⇒
 				e.printStackTrace();
 				Assert.assertEquals(classOf[HttpStreamServerSideException], e.getClass);
 		}
