@@ -24,6 +24,7 @@ import com.esotericsoftware.kryo.io.Input
 import javax.net.ssl.SSLContext
 import org.apache.spark.sql.types.StructType
 import org.apache.commons.io.IOUtils
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.Row
 import java.io.InputStream
 import java.sql.Timestamp
@@ -59,8 +60,8 @@ private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer
 		client;
 	}
 
-	def sendDataset(topic: String, batchId: Long, rdd: RDD[Row], maxPacketSize: Int = 10 * 1024 * 1024): Int = {
-		val iter = rdd.toLocalIterator;
+	def sendDataFrame(topic: String, batchId: Long, dataFrame: DataFrame, maxPacketSize: Int = 10 * 1024 * 1024): Int = {
+		val iter = dataFrame.toLocalIterator;
 		val buffer = ArrayBuffer[Row]();
 		var rows = 0;
 
@@ -105,14 +106,14 @@ private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer
 		responseBody.asInstanceOf[Map[String, Any]];
 	}
 
-	def fetchSchema(topic: String):StructType={
+	def fetchSchema(topic: String): StructType = {
 		val res = executeRequest(Map[String, Any](
 			"action" -> "actionFetchSchema",
 			"topic" -> topic));
 
-		res("schema").asInstanceOf[StructType];		
+		res("schema").asInstanceOf[StructType];
 	}
-	
+
 	def sendRows(topic: String, batchId: Long, rows: Array[Row]) = {
 		val res = executeRequest(Map[String, Any](
 			"action" -> "actionSendStream",

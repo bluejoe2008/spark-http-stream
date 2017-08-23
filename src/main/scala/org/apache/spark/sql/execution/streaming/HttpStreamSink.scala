@@ -36,7 +36,7 @@ class HttpStreamSink(httpPostURL: String, topic: String, kryoSerializer: KryoSer
 		while (!success && retried < RETRY_TIMES) {
 			try {
 				retried += 1;
-				sender.sendDataset(topic, batchId, data.rdd, maxPacketSize);
+				sender.sendDataFrame(topic, batchId, data, maxPacketSize);
 				success = true;
 			}
 			catch {

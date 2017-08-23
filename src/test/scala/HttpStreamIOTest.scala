@@ -20,13 +20,17 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.types.StructField
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.types.ByteType
 
 class HttpStreamIOTest {
-	val ROWS1 = Array(Row("hello1", 1, true, 'a', 0.1f, 0.1d, 1L, new Date(10000)),
-		Row("hello2", 2, false, 'b', 0.2f, 0.2d, 2L, new Date(20000)), Row("hello3", 3, true, 'c', 0.3f, 0.3d, 3L, new Date(30000)));
+	val ROWS1 = Array(Row("hello1", 1, true, 0.1f, 0.1d, 1L, new Date(10000)),
+		Row("hello2", 2, false, 0.2f, 0.2d, 2L, new Date(20000)),
+		Row("hello3", 3, true, 0.3f, 0.3d, 3L, new Date(30000)));
 
 	val ROWS2 = Array(Row("hello"),
-		Row("world"), Row("bye"), Row("world"));
+		Row("world"),
+		Row("bye"),
+		Row("world"));
 
 	@Test
 	def testHttpStreamIO() {
@@ -41,9 +45,16 @@ class HttpStreamIOTest {
 		import spark.implicits._
 		receiver.withBuffer()
 			.addListener(new ObjectArrayPrinter())
-			.createTopic[(String, Int, Boolean, Char, Float, Double, Long, Date)]("topic-1");
+			.createTopic[(String, Int, Boolean, Float, Double, Long, Date)]("topic-1")
+			.createTopic[String]("topic-2");
 
 		val client = HttpStreamClient.connect("http://localhost:8080/xxxx", kryoSerializer);
+		val schema1 = client.fetchSchema("topic-1");
+		Assert.assertArrayEquals(Array[Object](StringType, IntegerType, BooleanType, FloatType, DoubleType, LongType, DateType),
+			schema1.fields.map(_.dataType).asInstanceOf[Array[Object]]);
+		val schema2 = client.fetchSchema("topic-2");
+		Assert.assertArrayEquals(Array[Object](StringType),
+			schema2.fields.map(_.dataType).asInstanceOf[Array[Object]]);
 
 		val sid1 = client.subscribe("topic-1")._1;
 		val sid2 = client.subscribe("topic-2")._1;
