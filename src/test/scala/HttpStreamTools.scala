@@ -8,20 +8,21 @@ import org.apache.spark.sql.execution.streaming.HttpStreamSinkProvider
 
 /**
  * this Demo tests HttpTextStream and HttpTextSink:
- * 1. choose machine A, run 'HttpStreamDemo server 8080 /xxxx', this starts a HTTP server which receives data from machine B
+ * 1. choose machine A, run 'HttpStreamTools start-server-on 8080 /xxxx', this starts a HTTP server which receives data from machine B
  * 2. choose machine B, run 'nc -lk 9999'
- * 3. run 'HttpStreamDemo sink http://machine-a-host:8080/xxxx'
- * 4. type some text in nc, data will be received by HttpStreamSink and then produced by HttpStreamSource, finally displayed on console
+ * 3. run 'HttpStreamTools read-from http://machine-a-host:8080/xxxx' on machine B
+ * 4. run 'HttpStreamTools write-into http://machine-a-host:8080/xxxx' on machine C
+ * 5. type some text in nc, data will be received by HttpStreamSink and then produced as HttpStreamSource, finally displayed on console
  */
 
-object HttpStreamDemo {
+object HttpStreamTools {
 
 	def printUsage() {
 		println("USAGE:");
 		val name = this.getClass.getSimpleName;
-		println(s"\t$name start-server 8080 /xxxx");
-		println(s"\t$name server-to-count http://localhost:8080/xxxx");
-		println(s"\t$name tcp-to-server http://localhost:8080/xxxx");
+		println(s"\t$name start-server-on 8080 /xxxx");
+		println(s"\t$name write-into http://localhost:8080/xxxx");
+		println(s"\t$name read-from http://localhost:8080/xxxx");
 	}
 
 	def main(args: Array[String]) {
@@ -30,9 +31,9 @@ object HttpStreamDemo {
 		}
 		else {
 			args(0) match {
-				case "tcp-to-server" ⇒ runAsSink(args(1));
-				case "start-server" ⇒ runAsReceiver(args(2), args(1).toInt);
-				case "server-to-count" ⇒ runAsSource(args(1));
+				case "write-into" ⇒ runAsSink(args(1));
+				case "start-server-on" ⇒ runAsReceiver(args(2), args(1).toInt);
+				case "read-from" ⇒ runAsSource(args(1));
 				case s: String ⇒ printUsage();
 			}
 		}

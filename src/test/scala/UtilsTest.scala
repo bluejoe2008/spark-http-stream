@@ -27,8 +27,10 @@ class UtilsTest {
 		import org.apache.spark.sql.catalyst.encoders.encoderFor
 		val schema1 = encoderFor[String].schema;
 		val schema2 = encoderFor[(String)].schema;
+		val schema3 = encoderFor[((String))].schema;
 
 		Assert.assertEquals(schema1, schema2);
+		Assert.assertEquals(schema1, schema3);
 	}
 
 	@Test
