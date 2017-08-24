@@ -8,14 +8,14 @@ import org.apache.spark.sql.execution.streaming.HttpStreamSinkProvider
 
 /**
  * this Demo tests HttpTextStream and HttpTextSink:
- * 1. choose machine A, run 'HttpStreamTools start-server-on 8080 /xxxx', this starts a HTTP server which receives data from machine B
+ * 1. choose machine A, run 'HttpStreamDemo start-server-on 8080 /xxxx', this starts a HTTP server which receives data from machine B
  * 2. choose machine B, run 'nc -lk 9999'
- * 3. run 'HttpStreamTools read-from http://machine-a-host:8080/xxxx' on machine B
- * 4. run 'HttpStreamTools write-into http://machine-a-host:8080/xxxx' on machine C
+ * 3. run 'HttpStreamDemo read-from http://machine-a-host:8080/xxxx' on machine B
+ * 4. run 'HttpStreamDemo write-into http://machine-a-host:8080/xxxx' on machine C
  * 5. type some text in nc, data will be received by HttpStreamSink and then produced as HttpStreamSource, finally displayed on console
  */
 
-object HttpStreamTools {
+object HttpStreamDemo {
 
 	def printUsage() {
 		println("USAGE:");
