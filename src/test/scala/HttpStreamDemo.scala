@@ -1,10 +1,9 @@
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.execution.streaming.HttpStreamServer
+import org.apache.spark.sql.execution.streaming.http.HttpStreamServer
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.execution.streaming.ObjectArrayPrinter
-import org.apache.spark.serializer.KryoSerializer
-import org.apache.spark.sql.execution.streaming.HttpStreamSourceProvider
-import org.apache.spark.sql.execution.streaming.HttpStreamSinkProvider
+import org.apache.spark.sql.execution.streaming.http.ObjectArrayPrinter
+import org.apache.spark.sql.execution.streaming.http.HttpStreamSourceProvider
+import org.apache.spark.sql.execution.streaming.http.HttpStreamSinkProvider
 
 /**
  * this Demo tests HttpTextStream and HttpTextSink:
@@ -12,7 +11,7 @@ import org.apache.spark.sql.execution.streaming.HttpStreamSinkProvider
  * 2. choose machine B, run 'nc -lk 9999'
  * 3. run 'HttpStreamDemo read-from http://machine-a-host:8080/xxxx' on machine B
  * 4. run 'HttpStreamDemo write-into http://machine-a-host:8080/xxxx' on machine C
- * 5. type some text in nc, data will be received by HttpStreamSink and then produced as HttpStreamSource, finally displayed on console
+ * 5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
  */
 
 object HttpStreamDemo {
@@ -48,7 +47,7 @@ object HttpStreamDemo {
 
 		val sqlContext = spark.sqlContext;
 
-		//tcp->HttpTextSink
+		//tcp->HttpStreamSink
 		val lines = spark.readStream.
 			format("socket").
 			option("host", "localhost").
@@ -71,11 +70,12 @@ object HttpStreamDemo {
 			.getOrCreate();
 
 		import spark.implicits._
-		val kryoSerializer = new KryoSerializer(new SparkConf());
 
-		//starts a http server with a receiver servlet
-		val receiver = HttpStreamServer.start(kryoSerializer, servletPath, httpPort);
-		receiver.withBuffer().addListener(new ObjectArrayPrinter()).createTopic[String]("topic-1");
+		//starts a http server with a buffer
+		HttpStreamServer.start(servletPath, httpPort)
+			.withBuffer()
+			.addListener(new ObjectArrayPrinter())
+			.createTopic[String]("topic-1");
 	}
 
 	def runAsSource(httpServletURL: String) {
@@ -84,8 +84,8 @@ object HttpStreamDemo {
 
 		spark.conf.set("spark.sql.streaming.checkpointLocation", "/tmp/");
 
-		//HttpTextStream->map->console
-		//HttpTextStream as a source stream
+		//HttpStreamSource->map->console
+		//HttpStreamSource as a source stream
 		val lines = spark.readStream.format(classOf[HttpStreamSourceProvider].getName)
 			.option("httpServletUrl", httpServletURL)
 			.option("topic", "topic-1").load();

@@ -1,11 +1,7 @@
-package org.apache.spark.sql.execution.streaming
-
-import java.io.ByteArrayOutputStream
+package org.apache.spark.sql.execution.streaming.http
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
-
-import org.apache.http.HttpResponse
 import org.apache.http.client.entity.EntityBuilder
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.config.RegistryBuilder
@@ -15,52 +11,56 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory
 import org.apache.http.entity.ContentType
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
-import org.apache.http.util.EntityUtils
-import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoSerializer
-
-import com.esotericsoftware.kryo.io.Input
-
 import javax.net.ssl.SSLContext
 import org.apache.spark.sql.types.StructType
-import org.apache.commons.io.IOUtils
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.Row
+import javax.annotation.concurrent.NotThreadSafe
+import org.apache.spark.annotation.DeveloperApi
+import org.apache.spark.internal.Logging
 import java.io.InputStream
-import java.sql.Timestamp
 
 object HttpStreamClient {
-	def connect(httpServletUrl: String, kryoSerializer: KryoSerializer) =
-		new HttpStreamClient(httpServletUrl: String, kryoSerializer);
+	def connect(httpServletUrl: String) =
+		new HttpStreamClient(httpServletUrl);
 }
 
 /**
- * a client used to send data to HTTP server
- * a connection pool is used
+ * a client used to commun
+ * import org.apache.spark.sql.execution.streaming.http.RowExicate with HttpStreamServer
  */
-private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer: KryoSerializer) {
+private[streaming] class HttpStreamClient(httpServletUrl: String) extends Logging {
+
 	val sslsf = new SSLConnectionSocketFactory(SSLContext.getDefault());
 	val socketFactoryRegistry = RegistryBuilder.create[ConnectionSocketFactory]()
 		.register("https", sslsf)
 		.register("http", new PlainConnectionSocketFactory())
 		.build();
 
-	val cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-	cm.setMaxTotal(200);
-	cm.setDefaultMaxPerRoute(20);
+	val connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+	connectionManager.setMaxTotal(200);
+	connectionManager.setDefaultMaxPerRoute(20);
+
+	val serializer = SerializerFactory.DEFAULT.getSerializerInstance("kryo");
 
 	/**
-	 * retrieves a client object
+	 * retrieves a HttpClient object
 	 */
 	private def getClient = {
 		val client = HttpClients.custom()
-			.setConnectionManager(cm)
+			.setConnectionManager(connectionManager)
 			.build();
 
 		client;
 	}
 
+	/**
+	 * send a dataframe to server
+	 * if the packet is too large, it will be split as several smaller ones
+	 */
 	def sendDataFrame(topic: String, batchId: Long, dataFrame: DataFrame, maxPacketSize: Int = 10 * 1024 * 1024): Int = {
+		//performed on the driver node instead of worker nodes, so use local iterator
 		val iter = dataFrame.toLocalIterator;
 		val buffer = ArrayBuffer[Row]();
 		var rows = 0;
@@ -73,7 +73,7 @@ private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer
 		while (iter.hasNext) {
 			buffer += iter.next();
 			val objects = buffer.toArray;
-			val bytes = HttpStreamUtils.serialize(kryoSerializer, objects);
+			val bytes = serializer.serialize(objects).array();
 			if (bytes.length >= maxPacketSize) {
 				flush();
 			}
@@ -86,9 +86,13 @@ private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer
 		rows;
 	}
 
+	//sends requestBody to server, and parses responseBody as a Map
+	//kryoSerializer is used
 	private def executeRequest(requestBody: Map[String, Any]): Map[String, Any] = {
+		super.logDebug(s"request: $requestBody");
+
 		val post = new HttpPost(httpServletUrl);
-		val bytes = HttpStreamUtils.serialize(kryoSerializer, requestBody);
+		val bytes = serializer.serialize(requestBody).array();
 		val builder = EntityBuilder.create()
 			.setBinary(bytes)
 			.setContentType(ContentType.APPLICATION_OCTET_STREAM);
@@ -97,13 +101,17 @@ private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer
 		post.setEntity(entity);
 		val client = getClient;
 		val resp = client.execute(post);
+
+		//server side exception
 		if (resp.getStatusLine.getStatusCode != 200) {
 			throw new HttpStreamServerSideException(resp.getStatusLine.getReasonPhrase);
 		}
 
 		val is = resp.getEntity.getContent;
-		val responseBody = HttpStreamUtils.deserialize(kryoSerializer, is);
-		responseBody.asInstanceOf[Map[String, Any]];
+		val responseBody: Map[String, Any] = serializer.deserializeStream(is).readObject();
+		is.close();
+		super.logDebug(s"response: $responseBody");
+		responseBody;
 	}
 
 	def fetchSchema(topic: String): StructType = {
@@ -121,7 +129,7 @@ private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer
 			"batchId" -> batchId,
 			"rows" -> rows));
 
-		res("received").asInstanceOf[Int];
+		res("rowsCount").asInstanceOf[Int];
 	}
 
 	//subscribe topics
@@ -142,12 +150,12 @@ private[streaming] class HttpStreamClient(httpServletUrl: String, kryoSerializer
 		res("subscriberId").asInstanceOf[String];
 	}
 
-	def fetchStream[T: ClassTag](subscriberId: String): Array[(Timestamp, Row)] = {
+	def fetchStream[T: ClassTag](subscriberId: String): Array[RowEx] = {
 		val res = executeRequest(Map[String, Any](
 			"action" -> "actionFetchStream",
 			"subscriberId" -> subscriberId));
 
-		res("rows").asInstanceOf[Array[(Timestamp, Row)]];
+		res("rows").asInstanceOf[Array[RowEx]];
 	}
 }
 

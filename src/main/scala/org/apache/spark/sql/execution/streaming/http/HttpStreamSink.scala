@@ -1,16 +1,14 @@
-package org.apache.spark.sql.execution.streaming
+package org.apache.spark.sql.execution.streaming.http
 
-import org.apache.spark.annotation.InterfaceStability
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.execution.streaming.Sink
 import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.sources.StreamSinkProvider
 import org.apache.spark.sql.streaming.OutputMode
 
-import Params._
-import org.apache.spark.SparkConf
-import org.apache.spark.serializer.KryoSerializer
+import Params.map2Params
 
 class HttpStreamSinkProvider extends StreamSinkProvider with DataSourceRegister {
 	def createSink(
@@ -18,14 +16,16 @@ class HttpStreamSinkProvider extends StreamSinkProvider with DataSourceRegister 
 		parameters: Map[String, String],
 		partitionColumns: Seq[String],
 		outputMode: OutputMode): Sink = {
-		new HttpStreamSink(parameters.getRequiredString("httpServletUrl"), parameters.getRequiredString("topic"), new KryoSerializer(sqlContext.sparkContext.conf), parameters.getInt("maxPacketSize", 10 * 1024 * 1024));
+		new HttpStreamSink(parameters.getRequiredString("httpServletUrl"),
+			parameters.getRequiredString("topic"),
+			parameters.getInt("maxPacketSize", 10 * 1024 * 1024));
 	}
 
 	def shortName(): String = "httpStream"
 }
 
-class HttpStreamSink(httpPostURL: String, topic: String, kryoSerializer: KryoSerializer, maxPacketSize: Int) extends Sink with Logging {
-	val sender = HttpStreamClient.connect(httpPostURL, kryoSerializer);
+class HttpStreamSink(httpPostURL: String, topic: String, maxPacketSize: Int) extends Sink with Logging {
+	val producer = HttpStreamClient.connect(httpPostURL);
 	val RETRY_TIMES = 5;
 	val SLEEP_TIME = 100;
 
@@ -36,7 +36,7 @@ class HttpStreamSink(httpPostURL: String, topic: String, kryoSerializer: KryoSer
 		while (!success && retried < RETRY_TIMES) {
 			try {
 				retried += 1;
-				sender.sendDataFrame(topic, batchId, data, maxPacketSize);
+				producer.sendDataFrame(topic, batchId, data, maxPacketSize);
 				success = true;
 			}
 			catch {
