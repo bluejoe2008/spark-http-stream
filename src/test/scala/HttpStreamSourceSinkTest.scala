@@ -71,7 +71,7 @@ class HttpStreamSourceSinkTest {
 		server.stop();
 
 		//the collector should have got data from the sink
-		val data = collector.get;
+		val data = collector.get.map(_.originalRow);
 		Assert.assertArrayEquals(ROWS1.map(_.toSeq.toArray).toArray.asInstanceOf[Array[Object]], data.map(_.toSeq.toArray).toArray.asInstanceOf[Array[Object]]);
 	}
 

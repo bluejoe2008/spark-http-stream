@@ -2,14 +2,10 @@ import java.util.Arrays
 import java.util.Properties
 
 import scala.collection.JavaConversions.iterableAsScalaIterable
-import scala.collection.mutable.ArrayBuffer
 
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.spark.SparkConf
-import org.apache.spark.serializer.KryoSerializer
-import org.apache.spark.sql.execution.streaming.http.HttpStreamClient
-import java.sql.Date
 import org.apache.spark.sql.Row
+import org.apache.spark.sql.execution.streaming.http.HttpStreamClient
 import org.apache.spark.sql.execution.streaming.http.HttpStreamServer
 import org.apache.spark.sql.execution.streaming.http.ObjectArrayPrinter
 import org.junit.Assert
@@ -22,12 +18,6 @@ class HttpStreamKafkaTest {
 
 	@Test
 	def testHttpStreamKafka() {
-		//starts a http server with a kafka receiver
-		val receiver = HttpStreamServer.start("/xxxx", 8080);
-
-		receiver.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
-			.addListener(new ObjectArrayPrinter());
-
 		//kafka conf
 		val props = new Properties();
 
@@ -35,18 +25,36 @@ class HttpStreamKafkaTest {
 		props.put("bootstrap.servers", "vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092");
 		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		props.put("auto.offset.reset", "latest");
+		props.put("auto.offset.reset", "earliest");
 
-		val consumer = new KafkaConsumer[String, String](props);
-		consumer.subscribe(Arrays.asList("kafka-topic1"));
+		val consumer1 = new KafkaConsumer[String, String](props);
+		consumer1.subscribe(Arrays.asList("kafka-topic1"));
+		var records1: Seq[String] = null;
+		do {
+			records1 = consumer1.poll(5000).map(_.value()).toSeq;
+			println(records1);
+		} while (!records1.isEmpty)
+
+		consumer1.close();
+		props.put("auto.offset.reset", "latest");
+		val consumer2 = new KafkaConsumer[String, String](props);
+		consumer2.subscribe(Arrays.asList("kafka-topic1"));
+
+		//starts a http server with a kafka receiver
+		val server = HttpStreamServer.start("/xxxx", 8080);
+
+		server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
+			.addListener(new ObjectArrayPrinter());
 
 		val client = HttpStreamClient.connect("http://localhost:8080/xxxx");
+
+		//send ROWS2 to HttpStreamServer, and the server will forward messages to Kafka
 		client.sendRows("kafka-topic1", 1, ROWS2);
 
-		//fetch records from kafka
-		val records = consumer.poll(1000).map(_.value()).toArray;
-
-		Assert.assertArrayEquals(LINES2.asInstanceOf[Array[Object]], records.asInstanceOf[Array[Object]]);
-		receiver.stop();
+		//now, fetch records from kafka
+		val records2 = consumer2.poll(5000).map(_.value()).toSeq;
+		println(records2);
+		Assert.assertArrayEquals(LINES2.asInstanceOf[Array[Object]], records2.toArray.asInstanceOf[Array[Object]]);
+		server.stop();
 	}
 }

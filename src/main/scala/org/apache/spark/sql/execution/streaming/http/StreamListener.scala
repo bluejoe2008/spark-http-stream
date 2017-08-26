@@ -8,16 +8,16 @@ import org.apache.spark.sql.Row
  * listens on data arrivals to HttpStreamServer
  */
 trait ObjectArrayListener {
-	def onArrive(topic: String, batchId: Long, objects: Array[Row]);
+	def onArrive(topic: String, objects: Array[RowEx]);
 }
 
 /**
  * collects data in local memory buffer
  */
 class ObjectArrayCollector extends ObjectArrayListener {
-	val buffer = ArrayBuffer[Row]();
+	val buffer = ArrayBuffer[RowEx]();
 
-	def onArrive(topic: String, batchId: Long, objects: Array[Row]) {
+	def onArrive(topic: String, objects: Array[RowEx]) {
 		buffer ++= objects;
 	}
 
@@ -28,8 +28,8 @@ class ObjectArrayCollector extends ObjectArrayListener {
  * prints data while arriving
  */
 class ObjectArrayPrinter extends ObjectArrayListener {
-	def onArrive(topic: String, batchId: Long, objects: Array[Row]) {
-		println(s"++++++++topic=$topic,batch=$batchId++++++++");
+	def onArrive(topic: String, objects: Array[RowEx]) {
+		println(s"++++++++topic=$topic++++++++");
 		objects.foreach(println);
 	}
 }
