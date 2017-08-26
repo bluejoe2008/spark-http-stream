@@ -1,5 +1,7 @@
 # spark-http-stream
 
+spark-http-stream enables transfer Spark DataFrame over HTTP protocol. Unlike tcp streams, Kafka streams and HDFS file streams, http streams flow across distributed data center.
+
 spark-http-stream provides:
 * HttpStreamServer: a HTTP server which receives, collects and returns http streams 
 * HttpStreamSource: reads messages from HttpStreamServer, acts as a Source
@@ -59,8 +61,4 @@ or with a KafkaAsReceiver:
 
 	server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
 		.addListener(new ObjectArrayPrinter());
-
-
-
-
 
