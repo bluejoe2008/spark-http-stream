@@ -1,6 +1,6 @@
 # spark-http-stream
 
-spark-http-stream transfers Spark structured stream over HTTP protocol. Unlike tcp streams, Kafka streams and HDFS file streams, http streams often flow across distributed clusters on the Web.
+spark-http-stream transfers Spark structured stream over HTTP protocol. Unlike tcp streams, Kafka streams and HDFS file streams, http streams often flow across distributed big data clusters on the Web. This feature is very helpful to build global data processing pipeline across serveral data centers (scientific research institues, for example) who own seperated data sets.
 
 spark-http-stream provides:
 * `HttpStreamServer`: a HTTP server which receives, collects and returns http streams 
@@ -115,7 +115,8 @@ spark-http-stream provides a servlet named `ConfigurableHttpStreamingServlet`, u
 	
 in the example above, a servlet of `ConfigurableHttpStreamServlet` is defined with a ActionsHandlerFactory `KafkaAsReceiverFactory`, required parameters for the `ActionsHandlerFactory` (`bootstrapServers`, for example), are defined as `init-param`.
 
-# HttpStreamClient
+# using HttpStreamClient
+
 HttpStreamClient` provides a HTTP client used to communicate with a `HttpStreamServer`. It contains serveral methods:
 * `sendDataFrame`: send a `DataFrame` to the server, if the `DataFrame` is too large, it will be splitted into smaller packets
 * `sendRows`: send data (as `Array[Row]`) to server
