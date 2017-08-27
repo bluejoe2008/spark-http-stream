@@ -12,7 +12,7 @@ also it provides:
 * `HttpStreamSourceProvider`: a StreamSourceProvider which creates `HttpStreamSource`
 * `HttpStreamSinkProvider`: a StreamSinkProvider which creates `HttpStreamSink`
 
-# HttpStreamSource, HttpStreamSink
+## HttpStreamSource, HttpStreamSink
 
 The following code loads messages from a `HttpStreamSource`:
 
@@ -42,7 +42,7 @@ options:
 * topic: the topic name of messages which you want to produce
 * maxPacketSize: max size in bytes of each message packet, if the actual DataFrame is too large, it will be splitted into serveral packets, default value is 10*1024*1024(10M)
 
-# starts a standalone HttpStreamServer
+## Starts a standalone HttpStreamServer
 `HttpStreamServer` is actually a Jetty server, it can be started using following code:
 
 	val server = HttpStreamServer.start("/xxxx", 8080);
@@ -62,7 +62,7 @@ or with a `KafkaAsReceiver`:
 	server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
 		.addListener(new ObjectArrayPrinter());
 
-# understanding ActionsHandler
+## Understanding ActionsHandler
 
 as shown previous section, serveral kinds of `ActionsHandler` are defined in spark-http-stream:
 * `NullActionsHandler`: does nothing
@@ -91,7 +91,7 @@ the code above says: this `ActionsHandler` only handles action `actionSendStream
 		def createInstance(params: Params): ActionsHandler;
 	}
 
-# embed HttpStreamServer in Web application servers
+## Embedding HttpStreamServer in Web application servers
 
 spark-http-stream provides a servlet named `ConfigurableHttpStreamingServlet`, users can configure the servlet in web.xml:
 
@@ -115,7 +115,7 @@ spark-http-stream provides a servlet named `ConfigurableHttpStreamingServlet`, u
 	
 in the example above, a servlet of `ConfigurableHttpStreamServlet` is defined with a ActionsHandlerFactory `KafkaAsReceiverFactory`, required parameters for the `ActionsHandlerFactory` (`bootstrapServers`, for example), are defined as `init-param`.
 
-# using HttpStreamClient
+## Using HttpStreamClient
 
 HttpStreamClient` provides a HTTP client used to communicate with a `HttpStreamServer`. It contains serveral methods:
 * `sendDataFrame`: send a `DataFrame` to the server, if the `DataFrame` is too large, it will be splitted into smaller packets
