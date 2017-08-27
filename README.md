@@ -73,7 +73,16 @@ options:
 * topic: topic name of produced messages
 * maxPacketSize: max size in bytes of each message packet, if the actual DataFrame is too large, it will be splitted into serveral packets, default value is `10*1024*1024`(10M)
 
-Note that `HttpStreamSource` is only available when the `HttpStreamServer` is equiped with a  `MemoryBufferAsReceiver` (use `withBuffer`, as shown above). If the HttpStreamServer choose Kafka as back-end message system (use `withKafka`), it is wrong idea to consume data from `HttpStreamSource`, just use KafkaSource instead.
+Note that `HttpStreamSource` is only available when the `HttpStreamServer` is equiped with a  `MemoryBufferAsReceiver` (use `withBuffer`, as shown above). If the HttpStreamServer choose Kafka as back-end message system (use `withKafka`), it is wrong to consume data from `HttpStreamSource`, just use `KafkaSource` (see http://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html) instead:
+
+	val df = spark
+		.readStream
+		.format("kafka")
+		.option("kafka.bootstrap.servers", "vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
+		.option("subscribe", "topic-1")
+		.load()
+
+see https://github.com/bluejoe2008/spark-http-stream/blob/master/src/test/scala/HttpStreamSourceSinkTest.scala and https://github.com/bluejoe2008/spark-http-stream/blob/master/src/test/scala/HttpStreamKafkaTest.scala to get complete example code.
 
 ## Understanding ActionsHandler
 
