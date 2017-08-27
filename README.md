@@ -26,7 +26,7 @@ options:
 * `httpServletUrl`: path to the servlet
 * `topic`: the topic name of messages which you want to consume
 * `includesTimestamp`: if each row in the loaded DataFrame includes a time stamp or not, default value is false
-* `timestampColumnName`: name assigned to the time stamp column, default value is '_TIMESTAMP_'
+* `timestampColumnName`: name assigned to the time stamp column, default value is '\_TIMESTAMP\_'
 * `msFetchPeriod`: time interval in milliseconds for message buffer check, default value is 1(1ms)
 
 The following code outputs messages to a `HttpStreamSink`:
@@ -69,7 +69,7 @@ as shown previous section, serveral kinds of `ActionsHandler` are defined in spa
 * `MemoryBufferAsReceiver`: maintains a local memory buffer, stores data sent from producers into buffer, and allows consumers fetch data in batch
 * `KafkaAsReceiver`: forwards all received data to kafka
 
-users can customize your own ActionsHandler as you will. The interface is defined like:
+users can customize your own `ActionsHandler` as you will. The interface is defined like:
 
 	trait ActionsHandler {
 		def listActionHandlerEntries(requestBody: Map[String, Any]): ActionHandlerEntries;
@@ -83,13 +83,15 @@ here `ActionHandlerEntries` is just an alias of PartialFunction[String, Map[Stri
 		case "actionSendStream" ⇒ handleSendStream(requestBody);
 	}
 
+the code above says: this `ActionsHandler` only handles action `actionSendStream`, in this case, it calls `handleSendStream(requestBody)` to handle request and output its return value as response. If other action is requested, an `UnsupportedActionException` will be thrown by the HttpStreamServer. 
+
 `ActionsHandlerFactory` is defined to tell how to create a ActionsHandler with required parameters:
 
 	trait ActionsHandlerFactory {
 		def createInstance(params: Params): ActionsHandler;
 	}
 
-# starts HttpStreamServer in Tomcat or other web application servers
+# embed HttpStreamServer in Web application servers
 
 spark-http-stream provides a servlet named `ConfigurableHttpStreamingServlet`, users can configure the servlet in web.xml:
 
@@ -111,4 +113,15 @@ spark-http-stream provides a servlet named `ConfigurableHttpStreamingServlet`, u
 		<url-pattern>/xxxx</url-pattern>
 	</servlet-mapping>
 	
-in the example above, a servlet of `ConfigurableHttpStreamServlet` is defined with a ActionsHandlerFactory `KafkaAsReceiverFactory`, required parameters for the `ActionsHandlerFactory`, `bootstrapServers`, for example, are defined as `init-param`.
+in the example above, a servlet of `ConfigurableHttpStreamServlet` is defined with a ActionsHandlerFactory `KafkaAsReceiverFactory`, required parameters for the `ActionsHandlerFactory` (`bootstrapServers`, for example), are defined as `init-param`.
+
+# HttpStreamClient
+HttpStreamClient` provides a HTTP client used to communicate with a `HttpStreamServer`. It contains serveral methods:
+* `sendDataFrame`: send a `DataFrame` to the server, if the `DataFrame` is too large, it will be splitted into smaller packets
+* `sendRows`: send data (as `Array[Row]`) to server
+* `fetchSchema`: retrieves schema of certain topic
+* `fecthStream`: retrieves data (as 'Array[RowEx]') from server
+* `subscribe`: subscribe a topic and retrieves a subscriberId
+* `unsubscribe`: unsubscribe
+
+Note that some methods are only available when the server is equipped with correct `ActionsHandler`. As an example, the `KafkaAsReceiver` only handles action `actionSendStream`, that means, if you called `fecthStream` and `sendDataFrame` methods of the HttpStreamClient, it works well. But it will fail and throw an `UnsupportedActionException` when you called `subscribe` method.
