@@ -12,6 +12,10 @@ also spark-http-stream provides:
 * `HttpStreamSourceProvider`: a StreamSourceProvider which creates `HttpStreamSource`
 * `HttpStreamSinkProvider`: a StreamSinkProvider which creates `HttpStreamSink`
 
+The simple archtecture of spark-http-stream is shown below:
+
+<img src="https://github.com/bluejoe2008/spark-http-stream/blob/master/docs/arch.png?raw=true">
+
 ## Starts a standalone HttpStreamServer
 
 `HttpStreamServer` is actually a Jetty server with a `HttpStreamServlet`, it can be started using following code:
