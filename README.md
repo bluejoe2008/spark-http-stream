@@ -181,6 +181,49 @@ steps to tests HttpStreamDemo:
 4. run `HttpStreamDemo write-into http://machine-a-host:8080/xxxx` on machine C
 5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
 
+## StreamListener
+
+`StreamListener` works when new data is arrived and will be consumed by `ActionsHandler`:
+
+	trait StreamListener {
+		def onArrive(topic: String, objects: Array[RowEx]);
+	}
+	
+Two kinds of `StreamListener`s are provided:
+
+* `StreamCollector`: collects data in a local memory buffer
+* `StreamPrinter`: prints data while arriving
+
+an example messages look like this:
+
+	++++++++topic=topic-1++++++++
+	RowEx([hello1,1,true,0.1,0.1,1,49],1,0,2017-08-27 20:37:56.432)
+	RowEx([hello2,2,false,0.2,0.2,2,50],1,1,2017-08-27 20:37:56.432)
+	RowEx([hello3,3,true,0.3,0.3,3,51],1,2,2017-08-27 20:37:56.432)
+	
+## Schema, data types, RowEx
+
+spark-http-stream only supports data types which can be recognized by Spark Encoders. These data types includes: `String`, `Boolean`, `Int`, `Long`, `Float`, `Double`, `Byte`, `Array[]`.
+
+A row will be wrapped as a `RowEx` object on receiving. `RowEx` is a data structure richer than `Row`. It contains some members and methods:
+
+* `originalRow`: original row
+* `batchId`: batch id passed by Spark
+* `offsetInBatch`: offset of this row in current batch
+* `withTimestamp()`: returns a `Row` with a timestamp
+* `withId()`: returns a `Row` with its id
+* `extra()`: returns a triple (batchId, offsetInBatch, timestamp)
+
+Considering an original row has values [hello1,1,true,0.1,0.1,1,49], following code show contents of mentioned structures:
+
+* `RowEx`: ([hello1,1,true,0.1,0.1,1,49],1,0,2017-08-27 20:37:56.432)
+* `originalRow`: [hello1,1,true,0.1,0.1,1,49]
+* `batchId`: 1
+* `offsetInBatch`: 0
+* `withTimestamp()`: [hello1,1,true,0.1,0.1,1,49,2017-08-27 20:37:56.432]
+* `withId()`: [hello1,1,true,0.1,0.1,1,49,1-0]
+* `extra()`: (1,0,2017-08-27 20:37:56.432)
+
 ## SerDe
 
 spark-http-stream defines a SerilizerFactory to create a SerializerInstance:
