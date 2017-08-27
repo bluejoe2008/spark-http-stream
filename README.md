@@ -1,14 +1,14 @@
 # spark-http-stream
 
-spark-http-stream enables transfer Spark DataFrame over HTTP protocol. Unlike tcp streams, Kafka streams and HDFS file streams, http streams flow across distributed data center.
+spark-http-stream transfers Spark structured stream over HTTP protocol. Unlike tcp streams, Kafka streams and HDFS file streams, http streams often flow across distributed clusters on the Web.
 
 spark-http-stream provides:
 * HttpStreamServer: a HTTP server which receives, collects and returns http streams 
-* HttpStreamSource: reads messages from HttpStreamServer, acts as a Source
-* HttpStreamSink: sends messages to a HttpStreamServer using POST command, acts as a Sink
+* HttpStreamSource: reads messages from a HttpStreamServer, acts as a structured streaming Source
+* HttpStreamSink: sends messages to a HttpStreamServer using HTTP-POST commands, acts as a structured streaming Sink
 
 also it provides:
-* HttpStreamClient: a client used to communicate with HttpStreamServer, developped upon HttpClient
+* HttpStreamClient: a client used to communicate with a HttpStreamServer, developped upon HttpClient
 * HttpStreamSourceProvider: a StreamSourceProvider which creates HttpStreamSource
 * HttpStreamSinkProvider: a StreamSinkProvider which creates HttpStreamSink
 
@@ -62,3 +62,22 @@ or with a KafkaAsReceiver:
 	server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
 		.addListener(new ObjectArrayPrinter());
 
+# ActionsHandler
+
+as shown previous section, serveral kinds of ActionsHandler are defined in spark-http-stream:
+* NullActionsHandler: does nothing
+* MemoryBufferAsReceiver: maintains a local memory buffer, stores data sent from producers into buffer, and allows consumers fetch data in batch
+* KafkaAsReceiver: forwards all received data to kafka
+
+users can customize your own ActionsHandler as you will. The interface is defined like:
+
+	trait ActionsHandler {
+		def listActionHandlerEntries(requestBody: Map[String, Any]): ActionHandlerEntries;
+		def destroy();
+	}
+	
+here ActionHandlerEntries is just an alias of PartialFunction[String, Map[String, Any]], which accepts an input argument `action: String`, and returns an output argument `responseBody: Map[String, Any]`. the `listActionHandlerEntries` method is often written like a set of `case` expression:
+
+	override def listActionHandlerEntries(requestBody: Map[String, Any]): PartialFunction[String, Map[String, Any]] = {
+		case "actionSendStream" ⇒ handleSendStream(requestBody);
+	}
