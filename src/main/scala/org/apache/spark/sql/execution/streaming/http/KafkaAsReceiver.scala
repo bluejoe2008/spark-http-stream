@@ -51,3 +51,7 @@ class KafkaAsReceiver(bootstrapServers: String) extends AbstractActionsHandler w
 		}
 	}
 }
+
+class KafkaAsReceiverFactory extends ActionsHandlerFactory {
+	def createInstance(params: Params) = new KafkaAsReceiver(params.getRequiredString("bootstrapServers"));
+}

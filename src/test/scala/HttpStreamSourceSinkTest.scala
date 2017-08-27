@@ -18,12 +18,12 @@ import org.apache.spark.sql.types.StructField
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.sql.Timestamp
-import org.apache.spark.sql.execution.streaming.http.ObjectArrayCollector
+import org.apache.spark.sql.execution.streaming.http.StreamCollector
 import org.apache.spark.sql.execution.streaming.http.HttpStreamServer
 import org.apache.spark.sql.execution.streaming.MemoryStream
 import org.apache.spark.sql.execution.streaming.MemorySink
 import org.apache.spark.sql.execution.streaming.http.HttpStreamSourceProvider
-import org.apache.spark.sql.execution.streaming.http.ObjectArrayPrinter
+import org.apache.spark.sql.execution.streaming.http.StreamPrinter
 import org.apache.spark.sql.execution.streaming.http.HttpStreamSinkProvider
 
 /**
@@ -48,10 +48,10 @@ class HttpStreamSourceSinkTest {
 		//starts a http server
 		val server = HttpStreamServer.start("/xxxx", 8080);
 		//add a listener by which we can test if the sink works well
-		val collector = new ObjectArrayCollector();
+		val collector = new StreamCollector();
 		server.withBuffer()
 			.addListener(collector)
-			.addListener(new ObjectArrayPrinter())
+			.addListener(new StreamPrinter())
 			.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1");
 
 		//memory->map->HttpStreamSink
@@ -149,7 +149,7 @@ class HttpStreamSourceSinkTest {
 		val receiver = HttpStreamServer.start("/xxxx", 8080);
 		//add a listener by which we can test if the sink works well
 		receiver.withBuffer()
-			.addListener(new ObjectArrayPrinter())
+			.addListener(new StreamPrinter())
 			.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1");
 
 		//memory->map->HttpStreamSink

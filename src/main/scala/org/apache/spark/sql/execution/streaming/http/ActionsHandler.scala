@@ -32,14 +32,6 @@ trait ActionsHandlerFactory {
 	def createInstance(params: Params): ActionsHandler;
 }
 
-class MemoryBufferAsReceiverFactory extends ActionsHandlerFactory {
-	def createInstance(params: Params) = new MemoryBufferAsReceiver();
-}
-
-class KafkaAsReceiverFactory extends ActionsHandlerFactory {
-	def createInstance(params: Params) = new KafkaAsReceiver(params.getRequiredString("bootstrapServers"));
-}
-
 abstract class AbstractActionsHandler extends ActionsHandler {
 	def getRequiredParam(requestBody: Map[String, Any], key: String): Any = {
 		val opt = requestBody.get(key);
@@ -73,9 +65,9 @@ trait SendStreamActionSupport {
 	def onReceiveStream(topic: String, rows: Array[RowEx]);
 	def getRequiredParam(requestBody: Map[String, Any], key: String): Any;
 
-	val listeners = ArrayBuffer[ObjectArrayListener]();
+	val listeners = ArrayBuffer[StreamListener]();
 
-	def addListener(listener: ObjectArrayListener): this.type = {
+	def addListener(listener: StreamListener): this.type = {
 		listeners += listener;
 		this;
 	}

@@ -32,10 +32,14 @@ object HttpStreamServer {
  * example:
  * <servlet>
  *   <servlet-name>httpStreamServlet</servlet-name>
- *   <servlet-class>org.apache.spark.sql.execution.streaming.http.ConfigurableHttpStreamingServlet</servlet-class>
+ *   <servlet-class>org.apache.spark.sql.execution.streaming.http.ConfigurableHttpStreamServlet</servlet-class>
  *   <init-param>
  *     <param-name>handlerFactoryName</param-name>
- *     <param-value></param-value>
+ *     <param-value>org.apache.spark.sql.execution.streaming.http.KafkaAsReceiverFactory</param-value>
+ *   </init-param>
+ *   <init-param>
+ *     <param-name>bootstrapServers</param-name>
+ *     <param-value>vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092</param-value>
  *   </init-param>
  * </servlet>
  *
@@ -44,7 +48,7 @@ object HttpStreamServer {
  *   <url-pattern>/servlet/stream</url-pattern>
  * </servlet-mapping>
  */
-class ConfigurableHttpStreamingServlet extends AbstractHttpStreamingServlet {
+class ConfigurableHttpStreamingServlet extends AbstractHttpStreamServlet {
 	var actionsHandler: ActionsHandler = null;
 	override def getActionsHandler(): ActionsHandler = actionsHandler;
 
@@ -67,7 +71,7 @@ class ConfigurableHttpStreamingServlet extends AbstractHttpStreamingServlet {
 /**
  * responds http post requests
  */
-abstract class AbstractHttpStreamingServlet extends HttpServlet with Logging {
+abstract class AbstractHttpStreamServlet extends HttpServlet with Logging {
 	protected def getActionsHandler(): ActionsHandler;
 	protected def getSerializerFactory(): SerializerFactory = SerializerFactory.DEFAULT;
 
@@ -115,7 +119,7 @@ abstract class AbstractHttpStreamingServlet extends HttpServlet with Logging {
 private[streaming] class HttpStreamServer(httpServletPath: String, httpPort: Int) extends Logging {
 	private val server = new Server(httpPort);
 	private var actionsHandler: ActionsHandler = new NullActionsHandler();
-	private val httpStreamServlet = new AbstractHttpStreamingServlet() {
+	private val httpStreamServlet = new AbstractHttpStreamServlet() {
 		override def getActionsHandler = actionsHandler;
 	};
 

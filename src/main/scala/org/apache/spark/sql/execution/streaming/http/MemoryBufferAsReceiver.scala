@@ -131,3 +131,7 @@ class InvalidSubscriberIdException(subscriberId: String)
 class TopicNotExistException(topic: String)
 		extends RuntimeException(s"topic does not exist: $topic") {
 }
+
+class MemoryBufferAsReceiverFactory extends ActionsHandlerFactory {
+	def createInstance(params: Params) = new MemoryBufferAsReceiver();
+}

@@ -1,7 +1,7 @@
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.execution.streaming.http.HttpStreamServer
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.execution.streaming.http.ObjectArrayPrinter
+import org.apache.spark.sql.execution.streaming.http.StreamPrinter
 import org.apache.spark.sql.execution.streaming.http.HttpStreamSourceProvider
 import org.apache.spark.sql.execution.streaming.http.HttpStreamSinkProvider
 
@@ -74,7 +74,7 @@ object HttpStreamDemo {
 		//starts a http server with a buffer
 		HttpStreamServer.start(servletPath, httpPort)
 			.withBuffer()
-			.addListener(new ObjectArrayPrinter())
+			.addListener(new StreamPrinter())
 			.createTopic[String]("topic-1");
 	}
 

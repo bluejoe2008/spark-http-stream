@@ -27,7 +27,7 @@ object HttpStreamClient {
 }
 
 /**
- * a client used to commun
+ * a client used to communicate with [[HttpStreamServer]]
  * import org.apache.spark.sql.execution.streaming.http.RowExicate with HttpStreamServer
  */
 private[streaming] class HttpStreamClient(httpServletUrl: String) extends Logging {
@@ -132,7 +132,7 @@ private[streaming] class HttpStreamClient(httpServletUrl: String) extends Loggin
 		res("rowsCount").asInstanceOf[Int];
 	}
 
-	//subscribe topics
+	//subscribe a topic
 	//returns subscriberId
 	def subscribe(topic: String): (String, StructType) = {
 		val res = executeRequest(Map[String, Any](

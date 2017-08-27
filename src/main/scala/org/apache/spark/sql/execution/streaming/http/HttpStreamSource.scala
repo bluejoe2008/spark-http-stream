@@ -20,7 +20,8 @@ import Params.map2Params
  * @author bluejoe2008@gmail.com
  * reads data from a HttpStreamServer
  */
-class HttpStreamSource(sqlContext: SQLContext, httpServletUrl: String, topic: String, msFetchPeriod: Int, includesTimestamp: Boolean, timestampColumnName: String) extends Source with Logging {
+class HttpStreamSource(sqlContext: SQLContext, httpServletUrl: String, topic: String, msFetchPeriod: Int, includesTimestamp: Boolean, timestampColumnName: String)
+		extends Source with Logging {
 	override def schema: StructType = schema2;
 	var producerOffset: LongOffset = new LongOffset(-1);
 	var consumerOffset = -1;

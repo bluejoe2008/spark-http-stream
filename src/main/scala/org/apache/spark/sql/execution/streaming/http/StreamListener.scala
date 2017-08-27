@@ -7,14 +7,14 @@ import org.apache.spark.sql.Row
  * @author bluejoe2008@gmail.com
  * listens on data arrivals to HttpStreamServer
  */
-trait ObjectArrayListener {
+trait StreamListener {
 	def onArrive(topic: String, objects: Array[RowEx]);
 }
 
 /**
- * collects data in local memory buffer
+ * collects data in a local memory buffer
  */
-class ObjectArrayCollector extends ObjectArrayListener {
+class StreamCollector extends StreamListener {
 	val buffer = ArrayBuffer[RowEx]();
 
 	def onArrive(topic: String, objects: Array[RowEx]) {
@@ -27,7 +27,7 @@ class ObjectArrayCollector extends ObjectArrayListener {
 /**
  * prints data while arriving
  */
-class ObjectArrayPrinter extends ObjectArrayListener {
+class StreamPrinter extends StreamListener {
 	def onArrive(topic: String, objects: Array[RowEx]) {
 		println(s"++++++++topic=$topic++++++++");
 		objects.foreach(println);

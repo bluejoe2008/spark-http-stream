@@ -7,7 +7,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.execution.streaming.http.HttpStreamClient
 import org.apache.spark.sql.execution.streaming.http.HttpStreamServer
-import org.apache.spark.sql.execution.streaming.http.ObjectArrayPrinter
+import org.apache.spark.sql.execution.streaming.http.StreamPrinter
 import org.junit.Assert
 import org.junit.Test
 
@@ -39,12 +39,14 @@ class HttpStreamKafkaTest {
 		props.put("auto.offset.reset", "latest");
 		val consumer2 = new KafkaConsumer[String, String](props);
 		consumer2.subscribe(Arrays.asList("kafka-topic1"));
+		val records3 = consumer2.poll(5000).map(_.value()).toSeq;
+		println(records3);
 
 		//starts a http server with a kafka receiver
 		val server = HttpStreamServer.start("/xxxx", 8080);
 
 		server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
-			.addListener(new ObjectArrayPrinter());
+			.addListener(new StreamPrinter());
 
 		val client = HttpStreamClient.connect("http://localhost:8080/xxxx");
 

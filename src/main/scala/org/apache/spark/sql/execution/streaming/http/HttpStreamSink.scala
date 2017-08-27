@@ -10,7 +10,8 @@ import org.apache.spark.sql.streaming.OutputMode
 
 import Params.map2Params
 
-class HttpStreamSinkProvider extends StreamSinkProvider with DataSourceRegister {
+class HttpStreamSinkProvider
+		extends StreamSinkProvider with DataSourceRegister {
 	def createSink(
 		sqlContext: SQLContext,
 		parameters: Map[String, String],
@@ -24,7 +25,8 @@ class HttpStreamSinkProvider extends StreamSinkProvider with DataSourceRegister 
 	def shortName(): String = "httpStream"
 }
 
-class HttpStreamSink(httpPostURL: String, topic: String, maxPacketSize: Int) extends Sink with Logging {
+class HttpStreamSink(httpPostURL: String, topic: String, maxPacketSize: Int)
+		extends Sink with Logging {
 	val producer = HttpStreamClient.connect(httpPostURL);
 	val RETRY_TIMES = 5;
 	val SLEEP_TIME = 100;

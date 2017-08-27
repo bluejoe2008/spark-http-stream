@@ -16,7 +16,7 @@ import org.apache.spark.sql.types.StructField
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types.ByteType
 import org.apache.spark.sql.execution.streaming.http.HttpStreamServer
-import org.apache.spark.sql.execution.streaming.http.ObjectArrayPrinter
+import org.apache.spark.sql.execution.streaming.http.StreamPrinter
 import org.apache.spark.sql.execution.streaming.http.HttpStreamServerSideException
 
 /**
@@ -46,7 +46,7 @@ class HttpStreamServerClientTest {
 		import spark.implicits._
 		//add a local message buffer to server, with 2 topics registered
 		server.withBuffer()
-			.addListener(new ObjectArrayPrinter())
+			.addListener(new StreamPrinter())
 			.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1")
 			.createTopic[String]("topic-2");
 
