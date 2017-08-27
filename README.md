@@ -18,8 +18,8 @@ also spark-http-stream provides:
 
 	val server = HttpStreamServer.start("/xxxx", 8080);
     
-when you request `http://localhost:8080/xxxx`, the `HttpStreamServlet` will use an embeded `ActionsHandler` to 
-parse your request message, perform certain action(`fecthSchema`, `fetchStream`, etc), and return response message.
+when `http://localhost:8080/xxxx` is requested, the `HttpStreamServlet` will use an embeded `ActionsHandler` to 
+parse request message, perform certain action(`fecthSchema`, `fetchStream`, etc), and return response message.
 
 by default, an `NullActionsHandler` is provided to the `HttpStreamServer`. It can be replaced with a `MemoryBufferAsReceiver`:
 
