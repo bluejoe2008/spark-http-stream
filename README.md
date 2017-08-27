@@ -44,6 +44,8 @@ options:
 * topic: topic name of produced messages
 * maxPacketSize: max size in bytes of each message packet, if the actual DataFrame is too large, it will be splitted into serveral packets, default value is `10*1024*1024`(10M)
 
+Note that if the HttpStreamServer choose Kafka as back-end message system (see next section), use Kafka instead of `HttpStreamSource` to consume the data stream.
+
 ## Starts a standalone HttpStreamServer
 
 `HttpStreamServer` is actually a Jetty server, it can be started using following code:
