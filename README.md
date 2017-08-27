@@ -14,7 +14,7 @@ also spark-http-stream provides:
 
 The simple archtecture of spark-http-stream is shown below:
 
-<img src="https://github.com/bluejoe2008/spark-http-stream/blob/master/docs/arch.png?raw=true">
+<img src="https://github.com/bluejoe2008/spark-http-stream/blob/master/docs/arch.png?raw=true" width="600">
 
 ## Starts a standalone HttpStreamServer
 
