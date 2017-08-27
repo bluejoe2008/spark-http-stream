@@ -181,9 +181,26 @@ steps to tests HttpStreamDemo:
 4. run `HttpStreamDemo write-into http://machine-a-host:8080/xxxx` on machine C
 5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
 
+## SerDe
+
+spark-http-stream defines a SerilizerFactory to create a SerializerInstance:
+
+	trait SerializerFactory {
+		def getSerializerInstance(serializerName: String): SerializerInstance;
+	}
+	
+an `SerializerFactory.DEFAULT` object is provided which is able to create two kinds of serializers:
+
+* `java`: creates a JavaSerializer
+* `kryo`: creates a KryoSerializer
+
+New kind of Serializer, `json` serializer, for example, is welcome. 
+
+By default, `HttpStreamClient` and `HttpStreamServer` uses `kryo` serializer.
+
 ## dependencies
 
 * `kafka-clients-0.10`: used by `KafkaAsReceiver`
 * `httpclient-4.5`: HttpStreamClient uses HttpClient project
 * `jetty-9.0`: HttpStreamServer is devploped upon Jetty
-* `spark-2.1`: of coz, spark structued streaming libray
+* `spark-2.1`: spark structued streaming libray
