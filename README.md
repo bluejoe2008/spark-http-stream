@@ -12,6 +12,35 @@ also spark-http-stream provides:
 * `HttpStreamSourceProvider`: a StreamSourceProvider which creates `HttpStreamSource`
 * `HttpStreamSinkProvider`: a StreamSinkProvider which creates `HttpStreamSink`
 
+## Starts a standalone HttpStreamServer
+
+`HttpStreamServer` is actually a Jetty server with a `HttpStreamServlet`, it can be started using following code:
+
+	val server = HttpStreamServer.start("/xxxx", 8080);
+    
+when you request `http://localhost:8080/xxxx`, the `HttpStreamServlet` will use an embeded `ActionsHandler` to 
+parse your request message, perform certain action(`fecthSchema`, `fetchStream`, etc), and return response message.
+
+by default, an `NullActionsHandler` is provided to the `HttpStreamServer`. It can be replaced with a `MemoryBufferAsReceiver`:
+
+	server.withBuffer()
+		.addListener(new ObjectArrayPrinter())
+		.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1")
+		.createTopic[String]("topic-2");
+      
+or with a `KafkaAsReceiver`:
+
+	server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
+		.addListener(new ObjectArrayPrinter());
+
+as shown above, serveral kinds of `ActionsHandler` are defined in spark-http-stream:
+
+* `NullActionsHandler`: does nothing
+* `MemoryBufferAsReceiver`: maintains a local memory buffer, stores data sent from producers into buffer, and allows consumers to fetch data in batch
+* `KafkaAsReceiver`: forwards all received data to Kafka
+
+Notes that MemoryBufferAsReceiver maintains a server-side message buffer, while KafkaAsReceiver only forwards messages to Kafka cluster.
+
 ## HttpStreamSource, HttpStreamSink
 
 The following code shows how to load messages from a `HttpStreamSource`:
@@ -44,38 +73,14 @@ options:
 * topic: topic name of produced messages
 * maxPacketSize: max size in bytes of each message packet, if the actual DataFrame is too large, it will be splitted into serveral packets, default value is `10*1024*1024`(10M)
 
-Note that if the HttpStreamServer choose Kafka as back-end message system (see next section), use Kafka instead of `HttpStreamSource` to consume the data stream.
-
-## Starts a standalone HttpStreamServer
-
-`HttpStreamServer` is actually a Jetty server, it can be started using following code:
-
-	val server = HttpStreamServer.start("/xxxx", 8080);
-    
-when you request `http://localhost:8080/xxxx`, the HttpStreamServer will use an `ActionsHandler` to 
-parse your request message, perform certain action(`fecthSchema`, `fetchStream`, etc), and return response message.
-
-by default, an `NullActionsHandler` is provided to the `HttpStreamServer`. It can be replaced with a `MemoryBufferAsReceiver`:
-
-	server.withBuffer()
-		.addListener(new ObjectArrayPrinter())
-		.createTopic[(String, Int, Boolean, Float, Double, Long, Byte)]("topic-1")
-		.createTopic[String]("topic-2");
-      
-or with a `KafkaAsReceiver`:
-
-	server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
-		.addListener(new ObjectArrayPrinter());
+Note that `HttpStreamSource` is only available when the `HttpStreamServer` is equiped with a  `MemoryBufferAsReceiver` (use `withBuffer`, as shown above). If the HttpStreamServer choose Kafka as back-end message system (use `withKafka`), it is wrong idea to consume data from `HttpStreamSource`, just use KafkaSource instead.
 
 ## Understanding ActionsHandler
 
-as shown in previous section, serveral kinds of `ActionsHandler` are defined in spark-http-stream:
+as shown in previous section, serveral kinds of `ActionsHandler` are defined in spark-http-stream: `NullActionsHandler`, 
+`MemoryBufferAsReceiver`, `KafkaAsReceiver`.
 
-* `NullActionsHandler`: does nothing
-* `MemoryBufferAsReceiver`: maintains a local memory buffer, stores data sent from producers into buffer, and allows consumers to fetch data in batch
-* `KafkaAsReceiver`: forwards all received data to kafka
-
-users can customize your own `ActionsHandler` as you will. The interface is defined like:
+users can also customize their own `ActionsHandler` as they will. The interface looks like:
 
 	trait ActionsHandler {
 		def listActionHandlerEntries(requestBody: Map[String, Any]): ActionHandlerEntries;
