@@ -126,3 +126,21 @@ HttpStreamClient` provides a HTTP client used to communicate with a `HttpStreamS
 * `unsubscribe`: unsubscribe
 
 Note that some methods are only available when the server is equipped with correct `ActionsHandler`. As an example, the `KafkaAsReceiver` only handles action `actionSendStream`, that means, if you called `fecthStream` and `sendDataFrame` methods of the HttpStreamClient, it works well. But it will fail and throw an `UnsupportedActionException` when you called `subscribe` method.
+
+```
++---------------+------------------------+-----------------+
+|  methods      | MemoryBufferAsReceiver | KafkaAsReceiver |
++---------------+------------------------+-----------------+
+| sendDataFrame |             √          |        √        |
++---------------+------------------------+-----------------+
+| sendRows      |             √          |        √        |
++---------------+------------------------+-----------------+
+| fetchSchema   |             √          |        X        |
++---------------+------------------------+-----------------+
+| fecthStream   |             √          |        X        |
++---------------+------------------------+-----------------+
+| subscribe     |             √          |        X        |
++---------------+------------------------+-----------------+
+| unsubscribe   |             √          |        X        |
++---------------+------------------------+-----------------+
+```
