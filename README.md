@@ -152,8 +152,15 @@ Note that some methods are only available when the server is equipped with corre
 * `HttpStreamKafkaTest`: tests HttpStreamSink with Kafka as underlying message reveiver
 * `HttpStreamDemo`: a tool helps to test HttpTextStream and HttpTextSink
 steps to tests HttpStreamDemo:
-1. choose machine A, run 'HttpStreamDemo start-server-on 8080 /xxxx', this starts a HTTP server which receives data from machine B
-2. choose machine B, run 'nc -lk 9999'
-3. run 'HttpStreamDemo read-from http://machine-a-host:8080/xxxx' on machine B
-4. run 'HttpStreamDemo write-into http://machine-a-host:8080/xxxx' on machine C
+1. choose machine A, run `HttpStreamDemo start-server-on 8080 /xxxx`, this starts a HTTP server which receives data from machine B
+2. choose machine B, run `nc -lk 9999`
+3. run `HttpStreamDemo read-from http://machine-a-host:8080/xxxx` on machine B
+4. run `HttpStreamDemo write-into http://machine-a-host:8080/xxxx` on machine C
 5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
+
+## dependencies
+
+* `kafka-clients-0.10`: used by `KafkaAsReceiver`
+* `httpclient-4.5`: HttpStreamClient uses HttpClient project
+* `jetty-9.0`: HttpStreamServer is devploped upon Jetty
+* `spark-2.1`: of coz, spark structued streaming libray
