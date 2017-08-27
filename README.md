@@ -151,12 +151,13 @@ Note that some methods are only available when the server is equipped with corre
 * `HttpStreamSourceSinkTest`: tests HttpStreamSource and HttpStreamSink
 * `HttpStreamKafkaTest`: tests HttpStreamSink with Kafka as underlying message reveiver
 * `HttpStreamDemo`: a tool helps to test HttpTextStream and HttpTextSink
+
 steps to tests HttpStreamDemo:
-1. choose machine A, run `HttpStreamDemo start-server-on 8080 /xxxx`, this starts a HTTP server which receives data from machine B
-2. choose machine B, run `nc -lk 9999`
-3. run `HttpStreamDemo read-from http://machine-a-host:8080/xxxx` on machine B
-4. run `HttpStreamDemo write-into http://machine-a-host:8080/xxxx` on machine C
-5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
+STEP 1. choose machine A, run `HttpStreamDemo start-server-on 8080 /xxxx`, this starts a HTTP server which receives data from machine B
+STEP 2. choose machine B, run `nc -lk 9999`
+STEP 3. run `HttpStreamDemo read-from http://machine-a-host:8080/xxxx` on machine B
+STEP 4. run `HttpStreamDemo write-into http://machine-a-host:8080/xxxx` on machine C
+STEP 5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
 
 ## dependencies
 
