@@ -65,9 +65,12 @@ class HttpStreamKafkaTest {
 		}
 
 		Thread.sleep(5000);
-		var records = consumer2.poll(5000).map(_.value()).toSeq;
-		println(records);
-		Assert.assertArrayEquals(LINES2.asInstanceOf[Array[Object]], records.toArray.asInstanceOf[Array[Object]]);
+		val records = consumer2.poll(5000);
+		records.foreach(record ⇒
+			println("key:" + record.key() + " value=" + record.value() + " partition:" + record.partition() + " offset=" + record.offset()));
+
+		val records2 = records.map(_.value()).toSeq;
+		Assert.assertArrayEquals(LINES2.asInstanceOf[Array[Object]], records2.toArray.asInstanceOf[Array[Object]]);
 		println("~~~~~~~~~~~~~~~~~~~~~~");
 	}
 
