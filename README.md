@@ -170,21 +170,6 @@ Note that some methods are only available when the server is equipped with corre
 +---------------+------------------------+-----------------+
 ```
 
-## Tests
-
-* `HttpStreamServerClientTest`: tests HttpStreamServer/Client
-* `HttpStreamSourceSinkTest`: tests HttpStreamSource and HttpStreamSink
-* `HttpStreamKafkaTest`: tests HttpStreamSink with Kafka as underlying message reveiver
-* `HttpStreamDemo`: a tool helps to test HttpTextStream and HttpTextSink
-
-steps to tests HttpStreamDemo:
-
-1. choose machine A, run `HttpStreamDemo start-server-on 8080 /xxxx`, this starts a HTTP server which receives data from machine B
-2. choose machine B, run `nc -lk 9999`
-3. run `HttpStreamDemo read-from http://machine-a-host:8080/xxxx` on machine B
-4. run `HttpStreamDemo write-into http://machine-a-host:8080/xxxx` on machine C
-5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
-
 ## StreamListener
 
 `StreamListener` works when new data is arrived and will be consumed by `ActionsHandler`:
@@ -271,6 +256,21 @@ an `SerializerFactory.DEFAULT` object is provided which is able to create two ki
 New kind of Serializer, `json` serializer, for example, is welcome. 
 
 By default, `HttpStreamClient` and `HttpStreamServer` uses `kryo` serializer.
+
+## Tests
+
+* `HttpStreamServerClientTest`: tests HttpStreamServer/Client, https://github.com/bluejoe2008/spark-http-stream/blob/master/src/test/scala/HttpStreamServerClientTest.scala
+* `HttpStreamSourceSinkTest`: tests HttpStreamSource and HttpStreamSink, https://github.com/bluejoe2008/spark-http-stream/blob/master/src/test/scala/HttpStreamSourceSinkTest.scala
+* `HttpStreamKafkaTest`: tests HttpStreamSink with Kafka as underlying message reveiver, https://github.com/bluejoe2008/spark-http-stream/blob/master/src/test/scala/HttpStreamKafkaTest.scala
+* `HttpStreamDemo`: a tool helps to test HttpTextStream and HttpTextSink, https://github.com/bluejoe2008/spark-http-stream/blob/master/src/test/scala/HttpStreamDemo.scala
+
+steps to tests HttpStreamDemo:
+
+1. choose machine A, run `HttpStreamDemo start-server-on 8080 /xxxx`, this starts a HTTP server which receives data from machine B
+2. choose machine B, run `nc -lk 9999`
+3. run `HttpStreamDemo read-from http://machine-a-host:8080/xxxx` on machine B
+4. run `HttpStreamDemo write-into http://machine-a-host:8080/xxxx` on machine C
+5. type some text in nc, data will be received by HttpStreamSink and then consumed as HttpStreamSource, finally displayed on console
 
 ## dependencies
 
