@@ -34,7 +34,8 @@ class KafkaAsReceiver(bootstrapServers: String) extends AbstractActionsHandler w
 		for (row ← rows) {
 			index += 1;
 			val key = "" + row.batchId + "-" + row.offsetInBatch;
-			val value = row.originalRow.toString();
+			//TODO: send an array instead of a string value?
+			val value = row.originalRow(0).toString();
 			val record = new ProducerRecord[String, String](topic, key, value);
 			producer.send(record, new Callback() {
 				def onCompletion(metadata: RecordMetadata, e: Exception) = {
@@ -44,7 +45,8 @@ class KafkaAsReceiver(bootstrapServers: String) extends AbstractActionsHandler w
 					}
 					else {
 						val offset = metadata.offset();
-						logDebug(s"record is sent to kafka:key=$key, value=$value, offset=$offset");
+						val partition = metadata.partition();
+						logDebug(s"record is sent to kafka:key=$key, value=$value, partition=$partition, offset=$offset");
 					}
 				}
 			});
