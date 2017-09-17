@@ -37,7 +37,7 @@ or with a `KafkaAsReceiver`:
 	server.withKafka("vm105:9092,vm106:9092,vm107:9092,vm181:9092,vm182:9092")
 		.addListener(new ObjectArrayPrinter());
 
-as shown above, serveral kinds of `ActionsHandler` are defined in spark-http-stream:
+as shown above, several kinds of `ActionsHandler` are defined in spark-http-stream:
 
 * `NullActionsHandler`: does nothing
 * `MemoryBufferAsReceiver`: maintains a local memory buffer, stores data sent from producers into buffer, and allows consumers to fetch data in batch
