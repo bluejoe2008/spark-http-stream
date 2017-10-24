@@ -16,6 +16,16 @@ The simple archtecture of spark-http-stream is shown below:
 
 <img src="https://github.com/bluejoe2008/spark-http-stream/blob/master/docs/arch.png?raw=true" width="600">
 
+## importing spark-http-stream
+
+use maven to import spark-http-stream:
+
+	<dependency>
+	    <groupId>com.github.bluejoe2008</groupId>
+	    <artifactId>spark-http-stream</artifactId>
+	    <version>0.9</version>
+	</dependency>
+
 ## Starts a standalone HttpStreamServer
 
 `HttpStreamServer` is actually a Jetty server with a `HttpStreamServlet`, it can be started using following code:
