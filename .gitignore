@@ -5,3 +5,7 @@
 /.cache-main
 /.cache-tests
 .DS_Store
+/.idea/
+spark-warehouse/
+/spark-warehouse/
+/metastore_db/
