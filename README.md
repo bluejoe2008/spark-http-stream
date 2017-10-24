@@ -23,7 +23,7 @@ use maven to import spark-http-stream:
 	<dependency>
 	    <groupId>com.github.bluejoe2008</groupId>
 	    <artifactId>spark-http-stream</artifactId>
-	    <version>0.9</version>
+	    <version>0.9.1</version>
 	</dependency>
 
 ## Starts a standalone HttpStreamServer
