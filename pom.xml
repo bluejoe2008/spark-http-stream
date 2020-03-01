@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>spark-http-stream</name>
-    <groupId>com.github.bluejoe2008</groupId>
+    <groupId>org.grapheco</groupId>
     <artifactId>spark-http-stream</artifactId>
     <version>0.9.1</version>
     <description>http source and sink for spark</description>
@@ -30,7 +30,7 @@
         <jetty.version>9.0.0.M0</jetty.version>
         <spark.version>2.1.0</spark.version>
         <akka.version>2.4.20</akka.version>
-        <scala.version>2.11.4</scala.version>
+        <scala.version>2.11.8</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
     </properties>
     <dependencies>
