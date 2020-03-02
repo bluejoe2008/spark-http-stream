@@ -21,7 +21,7 @@ The simple archtecture of spark-http-stream is shown below:
 use maven to import spark-http-stream:
 
 	<dependency>
-	    <groupId>com.github.bluejoe2008</groupId>
+	    <groupId>org.grapheco</groupId>
 	    <artifactId>spark-http-stream</artifactId>
 	    <version>0.9.1</version>
 	</dependency>
