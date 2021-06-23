@@ -27,7 +27,7 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jetty.version>9.0.0.M0</jetty.version>
+        <jetty.version>9.4.41.v20210516</jetty.version>
         <spark.version>2.1.0</spark.version>
         <akka.version>2.4.20</akka.version>
         <scala.version>2.11.8</scala.version>
